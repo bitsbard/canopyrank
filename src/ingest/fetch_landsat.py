@@ -139,7 +139,7 @@ def export_ee_image_geotiff(
 
     proj = ee.Projection(crs)
     region_proj = region.transform(proj, 1)
-    coords = region_proj.bounds().coordinates().getInfo()[0]
+    coords = region_proj.bounds(maxError=1).coordinates().getInfo()[0]
     xs = [c[0] for c in coords]
     ys = [c[1] for c in coords]
     xmin, xmax = min(xs), max(xs)
