@@ -1,0 +1,169 @@
+# Santa Cruz County, California — CanopyRank region config
+# Paths are relative to the repository root unless absolute.
+
+region:
+  name: Santa Cruz County
+  state: CA
+  # 06 = California, 087 = Santa Cruz County
+  fips: "06087"
+
+crs:
+  # NAD83 / California Albers — metric, statewide, good for zonal stats
+  working: EPSG:3310
+  geographic: EPSG:4326
+
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  data_processed: data/processed
+  outputs: outputs
+  county_boundary: data/interim/county_boundary.geojson
+  parcels: data/interim/parcels.gpkg
+  landsat_lst: data/interim/landsat_lst_summer.tif
+  nlcd_landcover: data/interim/nlcd_landcover.tif
+  nlcd_impervious: data/interim/nlcd_impervious.tif
+  canopy_raster: data/interim/canopy.tif
+  calenviroscreen: data/interim/calenviroscreen.gpkg
+  zonal_stats: data/interim/parcel_zonal_stats.gpkg
+  feature_table: data/processed/parcel_features.gpkg
+  model: data/processed/lst_downscale_model.json
+  model_metrics: data/processed/lst_downscale_metrics.yaml
+  predictions: data/processed/parcel_lst_predictions.gpkg
+  ranked_geojson: outputs/ranked_parcels.geojson
+  ranked_map: outputs/ranked_parcels_map.html
+
+boundary:
+  # Local shapefile takes precedence when set; otherwise TIGER/Cartographic
+  # boundary is downloaded and filtered by FIPS.
+  shapefile: null
+  fips: "06087"
+  # US Census cartographic county boundaries (public domain)
+  tiger_url: https://www2.census.gov/geo/tiger/GENZ2023/shp/cb_2023_us_county_500k.zip
+
+parcels:
+  # Santa Cruz County Assessor parcels (ArcGIS Feature Layer)
+  # https://sccgis.santacruzcountyca.gov/server/rest/services/data/MapServer/2
+  url: https://sccgis.santacruzcountyca.gov/server/rest/services/data/MapServer/2
+  layer_type: arcgis_feature_layer
+  local_path: null
+  id_field: APN
+  use_code_field: ASRUSECD
+  use_desc_field: USECDDESC
+  park_field: PARKNAME
+  gp_parks_field: GPPARKS
+  landuse_field: GPLANDUSED
+  zoning_field: ZONING
+  acres_field: ACRES
+  city_field: CITYLIMITS
+  out_fields:
+    - APN
+    - ASRUSECD
+    - USECDDESC
+    - PARKNAME
+    - GPPARKS
+    - GPLANDUSED
+    - ZONING
+    - ACRES
+    - CITYLIMITS
+    - OBJECTID
+  page_size: 2000
+  # Keyword flags used to set the feasibility (public / vacant / ROW) indicator
+  public_keywords:
+    - park
+    - school
+    - government
+    - county of
+    - city of
+    - public
+    - open space
+    - recreation
+  vacant_keywords:
+    - vacant
+    - unimproved
+    - undeveloped
+  row_keywords:
+    - right of way
+    - right-of-way
+    - roadway
+    - street
+    - railroad
+    - utility
+
+canopy:
+  # Use county LiDAR when a local GeoTIFF exists; otherwise NLCD land cover.
+  source: nlcd
+  lidar_path: null
+  # TODO: Santa Cruz County does not currently publish a ready-to-use tree-canopy
+  # raster on the assessor GIS. Candidate public LiDAR inventory:
+  # https://coast.noaa.gov/dataviewer/#/lidar/search/
+  # NLCD (MRLC) landing page: https://www.mrlc.gov/data
+  nlcd:
+    ee_collection: USGS/NLCD_RELEASES/2021_REL/NLCD
+    year: "2021"
+    landcover_band: landcover
+    impervious_band: impervious
+    # NLCD classes treated as tree canopy (deciduous / evergreen / mixed / woody wetland)
+    forest_classes: [41, 42, 43, 90]
+    mrlc_url: https://www.mrlc.gov/data/nlcd-2021-land-cover-conus
+
+landsat:
+  collections:
+    - LANDSAT/LC08/C02/T1_L2
+    - LANDSAT/LC09/C02/T1_L2
+  start_date: "2020-06-01"
+  end_date: "2024-08-31"
+  months: [6, 7, 8]
+  max_cloud_cover: 30
+  thermal_band: ST_B10
+  qa_band: QA_PIXEL
+  scale_m: 30
+  # Collection-2 surface temperature scale/offset → Kelvin, then °C
+  st_scale: 0.00341802
+  st_offset: 149.0
+
+earth_engine:
+  # Free GEE account required. Read credentials from the environment:
+  #   EE_PROJECT or GOOGLE_CLOUD_PROJECT  — Cloud project id
+  #   GOOGLE_APPLICATION_CREDENTIALS      — service-account JSON path
+  #   EARTHENGINE_TOKEN                   — optional OAuth access token
+  project_env: EE_PROJECT
+  credentials_env: GOOGLE_APPLICATION_CREDENTIALS
+  token_env: EARTHENGINE_TOKEN
+  export_tile_px: 1024
+
+calenviroscreen:
+  version: "4.0"
+  # Official shapefile (data.ca.gov / OEHHA)
+  shapefile_url: https://data.ca.gov/dataset/11eb2b90-f3c1-46b4-bdf2-ba1dab939dac/resource/8e6a8be3-bfc6-4592-b0c3-7aafd77bba2e/download/calenviroscreen40shp_f_2021.shp.zip
+  # ArcGIS feature service fallback
+  # https://oehha.ca.gov/calenviroscreen/download-data
+  feature_service: https://services1.arcgis.com/PCHfdHz4GlDNAhBb/arcgis/rest/services/CalEnviroScreen_4_0_Results_/FeatureServer/0
+  percentile_field: CIscoreP
+  tract_field: Tract
+  county_field: County
+  county_name: Santa Cruz
+
+model:
+  target: lst_mean
+  features:
+    - canopy_pct
+    - impervious_pct
+    - area_m2
+  n_estimators: 300
+  max_depth: 6
+  learning_rate: 0.05
+  subsample: 0.8
+  colsample_bytree: 0.8
+  min_child_weight: 4
+  # Spatial hold-out: 0=SW, 1=SE, 2=NW, 3=NE (median x/y splits)
+  test_quadrant: 3
+  random_state: 42
+
+ranking:
+  canopy_target_pct: 40.0
+  ej_percentile_field: ces_percentile
+  top_n: 100
+
+viz:
+  tiles: CartoDB positron
+  zoom_start: 11
