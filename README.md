@@ -16,7 +16,7 @@ Top-100 ranked parcels using the included `config/santa_cruz.yaml` template.
 
 **Model performance:** spatial hold-out R² of **0.74** predicting parcel-level land surface temperature from canopy and impervious cover. Feature importances: impervious surface (0.61), canopy cover (0.35), parcel area (0.04) — directionally as expected, with paved surface dominating the heat signal.
 
-**Finding:** the top-100 ranked parcels concentrate heavily in **Watsonville** (81 of 100), rather than spreading evenly across the county. This tracks with Watsonville's documented CalEnviroScreen burden — it holds some of the county's highest environmental-justice percentiles, and the ranking formula weights EJ priority alongside predicted heat-reduction potential. Within that high-priority pool, heat-reduction potential still varies meaningfully (a ~47% range), so the model is discriminating between parcels rather than just reproducing the EJ score. In short: the tool correctly surfaces the county's most environmentally burdened community rather than artificially distributing recommendations — a result worth stating explicitly rather than treating as a bug.
+**Finding:** the top-100 ranked parcels concentrate heavily in **Watsonville** (81 of 100), rather than spreading evenly across the county. This tracks with Watsonville's documented CalEnviroScreen burden — it holds some of the county's highest environmental-justice percentiles, and the ranking formula weights EJ priority alongside predicted heat-reduction potential. Within that high-priority pool, heat-reduction potential still varies meaningfully (a ~47% range), so the model is discriminating between parcels rather than just reproducing the EJ score.
 
 ## Why
 
