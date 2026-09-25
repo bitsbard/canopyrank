@@ -164,5 +164,6 @@ ranking:
   top_n: 100
 
 viz:
-  tiles: OpenStreetMap
+  tiles: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
+  tiles_attr: "Tiles © Esri — Source: Esri, DeLorme, NAVTEQ"
   zoom_start: 11
