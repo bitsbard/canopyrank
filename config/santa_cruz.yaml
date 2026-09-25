@@ -164,5 +164,6 @@ ranking:
   top_n: 100
 
 viz:
-  tiles: CartoDB positron
+  tiles: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+  tiles_attr: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>'
   zoom_start: 11
