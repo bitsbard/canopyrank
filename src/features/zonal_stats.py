@@ -33,6 +33,7 @@ def _mean_stats(geoms: gpd.GeoSeries, raster: Path, nodata: float | None) -> lis
         stats=["mean"],
         nodata=nodata,
         geojson_out=False,
+        all_touched=True,
     )
     return [row["mean"] if row["mean"] is not None else np.nan for row in stats]
 
