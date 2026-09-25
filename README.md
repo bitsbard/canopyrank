@@ -66,9 +66,9 @@ CanopyRank pulls Landsat imagery via Google Earth Engine, which requires a one-t
 **1. Ingest — pull all data sources**
 
 ```bash
+python src/ingest/fetch_parcels.py --region config/santa_cruz.yaml
 python src/ingest/fetch_landsat.py --region config/santa_cruz.yaml
 python src/ingest/fetch_canopy.py --region config/santa_cruz.yaml
-python src/ingest/fetch_parcels.py --region config/santa_cruz.yaml
 ```
 
 CalEnviroScreen requires a manual download (see [Data Sources](#data-sources) below) before running:
