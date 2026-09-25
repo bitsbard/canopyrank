@@ -59,11 +59,27 @@ def ensure_parent(path: Path) -> Path:
 
 
 def download_url(url: str, dest: Path, timeout: int = 120) -> Path:
-    """Download ``url`` to ``dest`` using a descriptive User-Agent."""
+    """Download ``url`` to ``dest`` using a descriptive, browser-like User-Agent."""
     ensure_parent(dest)
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        dest.write_bytes(response.read())
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    request = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            dest.write_bytes(response.read())
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(
+            f"Failed to download {url} (HTTP {exc.code}). "
+            f"The host may be blocking automated requests — try downloading "
+            f"manually in a browser and placing the file at {dest}."
+        ) from exc
     return dest
 
 
