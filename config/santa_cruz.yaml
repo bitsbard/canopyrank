@@ -111,13 +111,12 @@ landsat:
     - LANDSAT/LC08/C02/T1_L2
     - LANDSAT/LC09/C02/T1_L2
   start_date: "2020-06-01"
-  end_date: "2024-08-31"
-  months: [6, 7, 8]
-  max_cloud_cover: 30
+  end_date: "2024-10-31"
+  months: [6, 7, 8, 9, 10]
+  max_cloud_cover: 60
   thermal_band: ST_B10
   qa_band: QA_PIXEL
   scale_m: 30
-  # Collection-2 surface temperature scale/offset → Kelvin, then °C
   st_scale: 0.00341802
   st_offset: 149.0
 
