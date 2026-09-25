@@ -8,6 +8,16 @@ CanopyRank turns public satellite, canopy, and parcel data into a ranked list of
 
 ---
 
+## Example Output — Santa Cruz County, CA
+
+![Ranked parcels map, Santa Cruz County](data/processed/ranked_parcels_map.png)
+
+Top-100 ranked parcels using the included `config/santa_cruz.yaml` template.
+
+**Model performance:** spatial hold-out R² of **0.74** predicting parcel-level land surface temperature from canopy and impervious cover. Feature importances: impervious surface (0.61), canopy cover (0.35), parcel area (0.04) — directionally as expected, with paved surface dominating the heat signal.
+
+**Finding:** the top-100 ranked parcels concentrate heavily in **Watsonville** (81 of 100), rather than spreading evenly across the county. This tracks with Watsonville's documented CalEnviroScreen burden — it holds some of the county's highest environmental-justice percentiles, and the ranking formula weights EJ priority alongside predicted heat-reduction potential. Within that high-priority pool, heat-reduction potential still varies meaningfully (a ~47% range), so the model is discriminating between parcels rather than just reproducing the EJ score. In short: the tool correctly surfaces the county's most environmentally burdened community rather than artificially distributing recommendations — a result worth stating explicitly rather than treating as a bug.
+
 ## Why
 
 Cities and counties routinely pay consultants for heat-vulnerability studies that produce PDFs, not pipelines. Meanwhile the underlying data — Landsat thermal imagery, canopy cover, parcel boundaries, EJ screening indices — is public and free. CanopyRank is the missing glue: an open, reproducible pipeline from raw public data to a ranked, mappable planting list.
@@ -91,13 +101,16 @@ python src/model/train.py
 python src/model/rank_parcels.py --top-n 100
 ```
 
-**4. Output — generate the interactive map**
+**4. Output — generate and view the interactive map**
 
 ```bash
 python src/viz/map_output.py --input outputs/ranked_parcels.geojson
+open outputs/ranked_parcels_map.html
 ```
 
 Output: `outputs/ranked_parcels.geojson` and an interactive HTML map of the top-ranked planting sites.
+
+> **Basemap note:** the map uses free, key-free Esri tiles by default (`viz.tiles` in the region config). CartoDB's basemaps now require an API key, and OpenStreetMap's tile servers rate-limit repeated local/automated requests — Esri's public tile service avoids both without any signup.
 
 ## Data Sources
 
@@ -120,6 +133,11 @@ California's data portal (`data.ca.gov`) blocks automated/scripted downloads of 
    python src/ingest/fetch_calenviroscreen.py --region config/santa_cruz.yaml
    ```
    It will detect the local file and skip the download step.
+
+## Methodology Notes
+
+- **Small-parcel handling:** zonal statistics use `all_touched=True`, so parcels smaller than a single Landsat pixel (900 m²) — common in dense areas like Capitola — still get a value, averaged from touching pixels rather than requiring a pixel center to fall inside the polygon. This is a standard tradeoff for fine-grained parcels against coarse (30m) satellite data, not a bug.
+- **Export region:** the Landsat/canopy export boundary is built from the parcels layer's convex hull rather than the raw county boundary, since county boundaries extend into open water (Monterey Bay) that has no valid land-surface-temperature signal.
 
 ## Extending to a New Region
 
