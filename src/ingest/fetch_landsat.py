@@ -136,12 +136,15 @@ def export_ee_image_geotiff(
 ) -> Path:
     """Download an EE image as a GeoTIFF via tiled ``computePixels`` calls."""
     import ee
+    from pyproj import Transformer
 
-    proj = ee.Projection(crs)
-    region_proj = region.transform(proj, 1)
-    coords = region_proj.bounds(maxError=1).coordinates().getInfo()[0]
-    xs = [c[0] for c in coords]
-    ys = [c[1] for c in coords]
+    # Earth Engine's Geometry.transform() does not reliably reproject FeatureCollection-
+    # derived geometries server-side, so compute the working-CRS bounding box locally.
+    coords = region.bounds(maxError=1).coordinates().getInfo()[0]
+    lons = [c[0] for c in coords]
+    lats = [c[1] for c in coords]
+    transformer = Transformer.from_crs("EPSG:4326", crs, always_xy=True)
+    xs, ys = transformer.transform(lons, lats)
     xmin, xmax = min(xs), max(xs)
     ymin, ymax = min(ys), max(ys)
 
