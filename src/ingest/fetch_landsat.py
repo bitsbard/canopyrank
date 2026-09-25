@@ -67,10 +67,19 @@ def initialize_earth_engine(config: dict[str, Any]) -> None:
 
 
 def county_ee_geometry(config: dict[str, Any]) -> Any:
-    """Return an ``ee.Geometry`` for the study area in EPSG:4326."""
+    """Return an ``ee.Geometry`` for the study area (land only), in EPSG:4326."""
     import ee
 
-    boundary = load_county_boundary(config).to_crs(config["crs"]["geographic"])
+    parcels_path = configured_path(config, "parcels")
+    if parcels_path.is_file():
+        # Prefer the parcel layer's dissolved extent — land only, no open water.
+        parcels = gpd.read_file(parcels_path).to_crs(config["crs"]["geographic"])
+        boundary = gpd.GeoDataFrame(
+            geometry=[parcels.union_all().convex_hull], crs=parcels.crs
+        )
+    else:
+        boundary = load_county_boundary(config).to_crs(config["crs"]["geographic"])
+
     geojson = boundary.__geo_interface__
     return ee.FeatureCollection(geojson).geometry()
 
