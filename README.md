@@ -40,25 +40,60 @@ Raw public data → Zonal stats per parcel → Downscaling model → EJ-weighted
 ```bash
 git clone https://github.com/bitsbard/canopyrank.git
 cd canopyrank
-pip install -r requirements.txt
+
+python3 -m venv path/to/venv
+source path/to/venv/bin/activate
+python3 -m pip install -r requirements.txt
 ```
 
-Requires a free [Google Earth Engine](https://earthengine.google.com/) account for satellite data access.
+### Earth Engine setup
+
+CanopyRank pulls Landsat imagery via Google Earth Engine, which requires a one-time setup:
+
+1. Create a free [Google Cloud project](https://console.cloud.google.com/) (or use an existing one).
+2. Register that project for Earth Engine access at [code.earthengine.google.com](https://code.earthengine.google.com/).
+3. Authenticate locally:
+   ```bash
+   earthengine authenticate
+   ```
+4. Point CanopyRank at your GCP project:
+   ```bash
+   export EE_PROJECT=your-gcp-project-id
+   ```
 
 ## Quick Start
 
+**1. Ingest — pull all data sources**
+
 ```bash
-# 1. Configure your study area (county/city boundary + data sources)
 python src/ingest/fetch_landsat.py --region config/santa_cruz.yaml
+python src/ingest/fetch_canopy.py --region config/santa_cruz.yaml
+python src/ingest/fetch_parcels.py --region config/santa_cruz.yaml
+```
 
-# 2. Build the parcel feature table
+CalEnviroScreen requires a manual download (see [Data Sources](#data-sources) below) before running:
+
+```bash
+python src/ingest/fetch_calenviroscreen.py --region config/santa_cruz.yaml
+```
+
+**2. Features — zonal stats + combined feature table**
+
+```bash
+python src/features/zonal_stats.py --region config/santa_cruz.yaml
 python src/features/build_feature_table.py --region config/santa_cruz.yaml
+```
 
-# 3. Train the downscaling model and rank parcels
+**3. Model — train, downscale, rank**
+
+```bash
 python src/model/train.py
 python src/model/rank_parcels.py --top-n 100
+```
 
-# 4. Generate the interactive map
+**4. Output — generate the interactive map**
+
+```bash
 python src/viz/map_output.py --input outputs/ranked_parcels.geojson
 ```
 
@@ -68,26 +103,31 @@ Output: `outputs/ranked_parcels.geojson` and an interactive HTML map of the top-
 
 All data sources used are free and public:
 
-- [Landsat 8/9](https://earthexplorer.usgs.gov/) via Google Earth Engine
-- [NLCD Land Cover](https://www.mrlc.gov/) (fallback canopy data)
-- County LiDAR canopy layers, where published
+- Landsat 8/9 via Google Earth Engine
+- NLCD Land Cover (fallback canopy data)
+- County LiDAR canopy layers
 - County assessor parcel boundaries
-- [CalEnviroScreen](https://oehha.ca.gov/calenviroscreen) / [EPA EJScreen](https://www.epa.gov/ejscreen)
+- CalEnviroScreen / EPA EJScreen
+
+### CalEnviroScreen — manual download required
+
+California's data portal (`data.ca.gov`) blocks automated/scripted downloads of the CalEnviroScreen shapefile. Download it manually before running `fetch_calenviroscreen.py`:
+
+1. Download the shapefile in your browser from [data.ca.gov](https://data.ca.gov/dataset/11eb2b90-f3c1-46b4-bdf2-ba1dab939dac/resource/8e6a8be3-bfc6-4592-b0c3-7aafd77bba2e/download/calenviroscreen40shp_f_2021.shp.zip).
+2. Place the file at `data/raw/calenviroscreen4.zip`.
+3. Run the script as normal:
+   ```bash
+   python src/ingest/fetch_calenviroscreen.py --region config/santa_cruz.yaml
+   ```
+   It will detect the local file and skip the download step.
 
 ## Extending to a New Region
 
 CanopyRank is region-agnostic. To run it for a new county, add a config file specifying the boundary, parcel data source, and canopy source — see `config/santa_cruz.yaml` for the template.
 
-## Roadmap
-
-- [ ] Support for ECOSTRESS as a higher-resolution LST alternative
-- [ ] Pre-built config files for additional CA counties
-- [ ] Batch processing for multi-county comparisons
-- [ ] Web-based interface for non-technical users
-
 ## Contributing
 
-Issues and pull requests welcome. This project is in active early development — feedback on methodology (especially the downscaling approach) is particularly useful.
+Issues and pull requests welcome.
 
 ## License
 
@@ -99,4 +139,4 @@ If you use CanopyRank in research or municipal planning work, please cite this r
 
 ---
 
-Built by [Jared Mills](https://github.com/bitsbard) — feedback and collaborators welcome.
+Built by [Jared Mills](https://github.com/bitsbard)
