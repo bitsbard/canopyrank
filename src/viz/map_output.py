@@ -68,7 +68,15 @@ def run(config: dict[str, Any], input_path: Path, output_path: Path | None = Non
     fmap = folium.Map(
         location=[centroid.y, centroid.x],
         zoom_start=int(viz.get("zoom_start", 11)),
-        tiles=viz.get("tiles", "CartoDB positron"),
+        tiles=viz.get(
+            "tiles",
+            "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        ),
+        attr=viz.get(
+            "tiles_attr",
+            '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> '
+            'contributors © <a href="https://carto.com/attributions">CARTO</a>',
+        ),
     )
     vmin = float(gdf["rank"].min())
     vmax = float(gdf["rank"].max())
