@@ -10,7 +10,7 @@ CanopyRank turns public satellite, canopy, and parcel data into a ranked list of
 
 ## Example Output — Santa Cruz County, CA
 
-![Ranked parcels map, Santa Cruz County](data/processed/ranked_parcels_map.png)
+![Ranked parcels map, Santa Cruz County](public/ranked_parcels_map.png)
 
 Top-100 ranked parcels using the included `config/santa_cruz.yaml` template.
 
