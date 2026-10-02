@@ -4,7 +4,7 @@
 
 CanopyRank turns public satellite, canopy, and parcel data into a ranked list of *where to plant trees next* — down to individual lots, not census tracts. Built for city foresters, urban planners, and environmental justice organizations who need an actionable list, not another heat map.
 
-> Most urban heat island tools stop at 30m raster resolution or census-tract granularity. CanopyRank downscales to the parcel level and ranks sites by heat-reduction potential, environmental-justice priority, and feasibility — using only free, public data sources.
+> Most urban heat tools stop at census-tract granularity. CanopyRank downscales to the parcel level and ranks sites by heat-reduction potential, environmental-justice priority, and feasibility — using only free, public data sources.
 
 ---
 
@@ -135,6 +135,10 @@ Top-100 ranked parcels using the included `config/santa_cruz.yaml` template.
 ## Extending to a New Region
 
 CanopyRank is region-agnostic. To run it for a new county, add a config file specifying the boundary, parcel data source, and canopy source — see `config/santa_cruz.yaml` for the template.
+
+## Ongoing Development
+
+I plan to add a yaml file for every county in California.
 
 ## Contributing
 
